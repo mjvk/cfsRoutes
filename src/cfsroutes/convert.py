@@ -53,7 +53,7 @@ class BaseConfig():
         if isinstance(config_data, dict):
             config.update(config_data)
             return config
-        if isinstance(config_data, str):
+        if isinstance(config_data, str) or isinstance(config_data, Path):
             config_file = Path(config_data)
             if config_file.is_file() and config_file.suffix == ".json":
                 config.update(load_json(config_file))

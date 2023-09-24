@@ -1,0 +1,8 @@
+{
+        "city": "Victoria",
+        "origin": "901 Kings Rd",
+        "csv_keys": ["name", "phone", "address", "postal", "buzzer", "diet", "family"],
+        "slips_header": ["Name", "Phone #", "Address", "Postal Code", "Buzzer #", "Dietary", "Family"],
+        "geocoding_service": "bcgov",
+        "enable_filter": true
+}
