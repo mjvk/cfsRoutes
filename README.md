@@ -5,7 +5,7 @@ This is a python module used to find efficient delivery routes for a collection 
 
 ## Usage
 
-cfsRoutes is designed to be usable both locally and as a server-side API. Useage requires providing a configuration file and an input `.csv` file.
+cfsRoutes is designed to be usable both locally and as a server-side API. Usage requires providing a configuration file and an input `.csv` file.
 
 For usage examples, see the `examples` directory.
 

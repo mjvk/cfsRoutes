@@ -5,7 +5,7 @@ def radians(deg):
     return deg * np.pi / 180
 
 def pair_euclid_distance(source: Tuple[float, float], dest: Tuple[float, float]) -> float:
-    """Approximate Euclidian distance between given lat/lng coordinates."""
+    """Approximate Euclidean distance between given lat/lng coordinates."""
 
     def coords(lat, lng, R):
         x = R * np.cos(lat) * np.cos(lng)

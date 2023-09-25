@@ -18,6 +18,6 @@ def get_client(api_key=None):
     GM_API_KEY = os.environ.get("GM_API_KEY")
     api_key = api_key or GM_API_KEY
     if not api_key:
-        raise ValueError("Google Maps API key not in argument or GM_API_KEY environemnt variable.")
+        raise ValueError("Google Maps API key not in argument or GM_API_KEY environment variable.")
     client = googlemaps.Client(key=api_key)
     return client

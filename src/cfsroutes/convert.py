@@ -206,7 +206,7 @@ class Converter(BaseConfig):
 
 
     def column_name_to_index(self, title_row: List[str]) -> dict:
-        """Return a dictionary of indicies of required columns."""
+        """Return a dictionary of indices of required columns."""
         result_dict = {}
         for i, title in enumerate(title_row):
             for key in self.csv_keys:
