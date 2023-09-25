@@ -15,7 +15,7 @@ For usage examples, see the `examples` directory.
 
 Download the latest package `.whl` from the **Assets** section of the [releases page](https://github.com/mjvk/cfsRoutes/releases).
 
-Install the `whl` file with `pip install --user cfsroutes-0.0.1-py3-none-any.whl`. The `cfsroutes` module should now be usable in python with `import cfsroutes`,
+Install the `whl` file with `pip install --user cfsroutes-0.0.1a0-py3-none-any.whl`. The `cfsroutes` module should now be usable in python with `import cfsroutes`,
 or through the command line with `cfsroutes [--config CONFIG.json] [--outfile OUTFILE.csv] infile.csv`. 
 
 ### Working with the source

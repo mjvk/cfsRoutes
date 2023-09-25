@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="cfsroutes",
-    version="0.0.1",
+    version="0.0.1a0",
     author="mjvk",
     author_email="",
     description="Domain specific delivery route creation.",
