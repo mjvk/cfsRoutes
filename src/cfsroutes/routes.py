@@ -47,7 +47,7 @@ class Routes(Converter):
 def cli():
     """Command line entrypoint."""
     parser = argparse.ArgumentParser(description="Create routes from input files.")
-    parser.add_argument("infile", nargs="?", help="Signup csv input file.")
+    parser.add_argument("infile", help="Signup csv input file.")
     parser.add_argument("--config", help="Config file.")
     parser.add_argument("--outfile", help="Local file to write slips output.")
     args = parser.parse_args()
