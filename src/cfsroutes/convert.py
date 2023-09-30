@@ -34,6 +34,7 @@ class BaseConfig():
         "slips_header": "",
         "geocoding_service": "bcgov",
         "enable_filter": True,
+        "drivers": None, 
     }
 
     def __init__(self, config=None):
@@ -44,6 +45,7 @@ class BaseConfig():
         self.slips_header = self.config.get("slips_header") or self.csv_keys
         self.geocoding_func = self.init_geocode_func(self.config.get("geocoding_service"))
         self.enable_filter = bool(self.config.get("enable_filter"))
+        self.drivers = self.driver_data(self.config.get("drivers"))
     
 
     def init_config(self, config_data):
@@ -87,9 +89,10 @@ class Converter(BaseConfig):
 
     def preprocess_address(self, address):
         """Strip multiline addresses and unit numbers."""
-        address = address.strip().split("\n")[0].replace("/", "-")
+        address = address.strip().replace("\n", ", ").replace("/", "-")
         address = address[:50]
-        address = re.sub(r"^([0-9]+)\s*\-+\s*(.*)", r"\2", address)
+        # Attempt to remove unit numbers
+        address = re.sub(r"^(#?[0-9]+)\s*\-+\s*(.*)", r"\2", address)
         if self.city.lower() not in address.lower():
             address = f"{address}, {self.city}"
         return address
@@ -187,8 +190,11 @@ class Converter(BaseConfig):
         keep = []
         filtered = []
         for row in data:
-            address = row.get("address").replace("\n", "$")
+            address = row.get("address").replace("\n", " ")
             location = row.get("location")
+            full_address = row.get("full_address")
+            if full_address in ("Victoria, BC", "BC"):
+                logger.warning("Skipping %2d| %s. Failed to parse.", row.get("source_index"), address)
             distance = matrix.distance(location, origin) if location else None
             logger.info("%2d| %s, distance=%sm", row.get("source_index"), address, int(distance))
             if distance is None or distance > threshold:
@@ -260,6 +266,8 @@ class Converter(BaseConfig):
         self.add_origin(data, self.origin)
         self.add_coordinates(data)
         data, filtered = self.check_coordinates(data)
+        if filtered:
+            logger.warning("Skipped: %s", filtered)
 
         return data, filtered
 
@@ -282,8 +290,12 @@ class Converter(BaseConfig):
         return driver_locations
 
 
-    def driver_data(self, infile) -> List[dict]:
-        drivers = self.drivers_json(infile)
+    def driver_data(self, drivers) -> List[dict]:
+        if not drivers:
+            return []
+        if isinstance(drivers, str):
+            drivers = self.drivers_json(drivers)
+        # Else assume sequence of dicts
         for driver in drivers:
             postal = driver.get("postal")
             location = self.gm_get_location(postal)["location"] if postal else None
