@@ -12,12 +12,14 @@ class Routes(Converter):
         super().__init__(config=config, signup=signup)
 
 
-    def slips_list(self, paths, data, drivers=None):
+    def slips_list(self, paths, data, assignment={}):
         output = []
-        drivers = drivers or {}
+        header = self.slips_header or []
+        if any(isinstance(column, str) for column in header):
+            header = [header] 
         for n, path in enumerate(paths):
-            output += [[f"DRIVER: {drivers.get(n, '')}"]]
-            output += [self.slips_header]
+            output += [[f"DRIVER: {assignment.get(n, '')}"]]
+            output += header
             for i in path:
                 if i == 0:
                     continue
@@ -38,7 +40,8 @@ class Routes(Converter):
         data, filtered = self.load_signups(infile)
         distance_matrix = matrix.distance_matrix(data)
         paths = solver.get_routes(distance_matrix)
-        slips = self.slips_list(paths, data)
+        assignment = solver.assign_drivers(data, paths, self.drivers)
+        slips = self.slips_list(paths, data, assignment)
         if outfile:
             self.write_slips(outfile, slips)
         return slips
@@ -50,6 +53,7 @@ def cli():
     parser.add_argument("infile", help="Signup csv input file.")
     parser.add_argument("--config", help="Config file.")
     parser.add_argument("--outfile", help="Local file to write slips output.")
+    parser.add_argument("--drivers", help="Drivers csv input file.")
     args = parser.parse_args()
 
     Routes(config=args.config).get_slips(infile=args.infile, outfile=args.outfile)

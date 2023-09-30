@@ -40,9 +40,9 @@ class BaseConfig():
     def __init__(self, config=None):
         self.config = self.init_config(config)
         self.city = self.config.get("city")
-        self.origin = self.config.get("origin") or self.city
+        self.origin = self.config.get("origin", self.city)
         self.csv_keys = self.config.get("csv_keys")
-        self.slips_header = self.config.get("slips_header") or self.csv_keys
+        self.slips_header = self.config.get("slips_header", self.csv_keys)
         self.geocoding_func = self.init_geocode_func(self.config.get("geocoding_service"))
         self.enable_filter = bool(self.config.get("enable_filter"))
         self.drivers = self.driver_data(self.config.get("drivers"))
@@ -76,6 +76,7 @@ class Converter(BaseConfig):
         self.data = []
         self.filtered = []
     
+
     def init_geocode_func(self, geocode_func):
         """Set the geocoding function from config."""
         if callable(geocode_func):
@@ -154,6 +155,7 @@ class Converter(BaseConfig):
         except:
             return None
 
+
     def add_origin(self, data, origin):
         """Mutate data to include origin address."""
         if data and data[0].get("address") == origin:
@@ -176,6 +178,13 @@ class Converter(BaseConfig):
                 logger.warning('%2d| No coordinates found for "%s".', source_index, address)
 
 
+    def add_location_from_postal(self, row):
+        """Fallback location."""
+        postal = row.get("postal", "")[:3].upper()
+        fallback_location = values.postal_code_fallback.get(postal, values.default_location)
+        row["location"] = fallback_location
+
+
     def check_coordinates(self, data, threshold=10000) -> Tuple[list, list]:
         """Check for missing or excessively distant coordinates.
 
@@ -194,19 +203,16 @@ class Converter(BaseConfig):
             location = row.get("location")
             full_address = row.get("full_address")
             if full_address in ("Victoria, BC", "BC"):
-                logger.warning("Skipping %2d| %s. Failed to parse.", row.get("source_index"), address)
+                logger.warning("%2d| %s. Failed to parse.", row.get("source_index"), address)
             distance = matrix.distance(location, origin) if location else None
             logger.info("%2d| %s, distance=%sm", row.get("source_index"), address, int(distance))
             if distance is None or distance > threshold:
-                logger.warning("Skipping %2d| %s. Distance %s exceeds %s", row.get("source_index"), address, int(distance), threshold)
+                logger.warning("%2d| %s. Distance %s exceeds %s", row.get("source_index"), address, int(distance), threshold)
                 if self.enable_filter:
                     filtered += [row]
                     continue
                 else:
-                    postal = row.get("postal")
-                    postal = postal and postal.upper()
-                    fallback_location = values.postal_code_fallback.get(postal, values.default_location)
-                    row["location"] = fallback_location
+                    self.add_location_from_postal(row)
             keep += [row]
         return keep, filtered
 
@@ -272,13 +278,13 @@ class Converter(BaseConfig):
         return data, filtered
 
 
-    def drivers_json(self, infile) -> List[dict]:
+    def load_drivers(self, infile) -> List[dict]:
+        """Read driver information from input file."""
         infile = Path(infile)
         if infile.suffix == ".json":
             with infile.open() as f:
                 json_content = f.read()
             driver_locations = json.loads(json_content)
-
         else:
             driver_locations = []
             with infile.open() as f:
@@ -291,15 +297,14 @@ class Converter(BaseConfig):
 
 
     def driver_data(self, drivers) -> List[dict]:
+        """Add driver locations."""
         if not drivers:
             return []
         if isinstance(drivers, str):
-            drivers = self.drivers_json(drivers)
+            drivers = self.load_drivers(drivers)
         # Else assume sequence of dicts
         for driver in drivers:
-            postal = driver.get("postal")
-            location = self.gm_get_location(postal)["location"] if postal else None
-            driver["location"] = location
+            driver["location"] = None
+            if driver.get("postal"):
+                self.add_location_from_postal(driver)
         return drivers
-    
-

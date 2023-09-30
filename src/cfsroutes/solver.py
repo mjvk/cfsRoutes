@@ -141,6 +141,9 @@ def assign_drivers(data, paths, drivers):
     # Modified from https://developers.google.com/optimization/assignment/assignment_example
     """Assign drivers to a route that ends closest to given location."""
 
+    if not drivers:
+        return {}
+
     route_ends = [
         {"index": path[-1], "location": data[path[-1]].get("location")}
         for path in paths
