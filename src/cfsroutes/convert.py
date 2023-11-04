@@ -196,7 +196,7 @@ class Converter(BaseConfig):
         origin = origin_data.get("location")
         if not origin:
             raise ValueError(f"Coordinates required in {origin_data}")
-        keep = []
+        keep = [origin_data]
         filtered = []
         for row in data:
             address = row.get("address").replace("\n", " ")
@@ -206,6 +206,7 @@ class Converter(BaseConfig):
                 logger.warning("%2d| %s. Failed to parse.", row.get("source_index"), address)
             distance = matrix.distance(location, origin) if location else None
             logger.info("%2d| %s, distance=%sm", row.get("source_index"), address, int(distance))
+            logger.info("  > %s", full_address)
             if distance is None or distance > threshold:
                 logger.warning("%2d| %s. Distance %s exceeds %s", row.get("source_index"), address, int(distance), threshold)
                 if self.enable_filter:
